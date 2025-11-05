@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log('🔌 Connecting to database...');
+console.log('🔌 Creating database connection pool...');
 console.log('📋 Database config:', {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -11,27 +11,35 @@ console.log('📋 Database config:', {
   port: process.env.DB_PORT
 });
 
-const db = mysql.createConnection({
+// Use connection pool instead of single connection
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
-  connectTimeout: 60000,
-  // Remove unsupported options
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  acquireTimeout: 60000,
+  timeout: 60000,
+  reconnect: true
 });
 
-db.connect(err => {
+// Test the connection
+pool.getConnection((err, connection) => {
   if (err) {
     console.error('❌ Database connection failed:', err.message);
     console.error('💡 Check Railway environment variables');
   } else {
     console.log('✅ Connected to MySQL database on Railway');
+    connection.release(); // Release the connection back to the pool
   }
 });
 
-db.on('error', (err) => {
-  console.error('📊 Database error:', err);
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('📊 Database pool error:', err);
 });
 
-export default db;
+export default pool;

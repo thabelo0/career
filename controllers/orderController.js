@@ -1,13 +1,11 @@
-import db from '../db/connection.js';
+import pool from '../db/connection.js';
 
 export const getOrders = (req, res) => {
   console.log('🔍 Attempting to fetch orders from database...');
   
-  db.query('SELECT * FROM orders', (err, results) => {
+  pool.query('SELECT * FROM orders', (err, results) => {
     if (err) {
       console.error('❌ Database query error:', err);
-      console.error('❌ Error code:', err.code);
-      console.error('❌ Error message:', err.sqlMessage);
       return res.status(500).json({ 
         success: false, 
         error: 'Database error',
@@ -22,7 +20,6 @@ export const getOrders = (req, res) => {
 export const createOrder = (req, res) => {
   const { order_id, customer_name, product, quantity, order_date, status } = req.body;
   
-  // Validate required fields
   if (!order_id || !customer_name || !product) {
     return res.status(400).json({ 
       success: false, 
@@ -31,9 +28,10 @@ export const createOrder = (req, res) => {
   }
 
   const sql = 'INSERT INTO orders (order_id, customer_name, product, quantity, order_date, status) VALUES (?, ?, ?, ?, ?, ?)';
-  db.query(sql, [order_id, customer_name, product, quantity, order_date, status], (err, result) => {
+  
+  pool.query(sql, [order_id, customer_name, product, quantity, order_date, status], (err, result) => {
     if (err) {
-      console.error('Create order error:', err);
+      console.error('❌ Create order error:', err);
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(400).json({ success: false, error: 'Order ID already exists' });
       }
@@ -51,10 +49,9 @@ export const updateOrder = (req, res) => {
     return res.status(400).json({ success: false, error: 'Status is required' });
   }
 
-  // Use order_id instead of id if that's your primary key
-  db.query('UPDATE orders SET status = ? WHERE order_id = ?', [status, id], (err, result) => {
+  pool.query('UPDATE orders SET status = ? WHERE order_id = ?', [status, id], (err, result) => {
     if (err) {
-      console.error('Update order error:', err);
+      console.error('❌ Update order error:', err);
       return res.status(500).json({ success: false, error: 'Failed to update order' });
     }
     
@@ -69,10 +66,9 @@ export const updateOrder = (req, res) => {
 export const deleteOrder = (req, res) => {
   const { id } = req.params;
   
-  // Use order_id instead of id if that's your primary key
-  db.query('DELETE FROM orders WHERE order_id = ?', [id], (err, result) => {
+  pool.query('DELETE FROM orders WHERE order_id = ?', [id], (err, result) => {
     if (err) {
-      console.error('Delete order error:', err);
+      console.error('❌ Delete order error:', err);
       return res.status(500).json({ success: false, error: 'Failed to delete order' });
     }
     

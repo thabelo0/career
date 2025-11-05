@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import ordersRouter from './routes/orders.js';
-import db from './db/connection.js';
+import pool from './db/connection.js';
 
 const app = express();
 
@@ -27,7 +27,7 @@ const initializeDatabase = () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `;
 
-    db.query(createTableSQL, (err, results) => {
+    pool.query(createTableSQL, (err, results) => {
       if (err) {
         console.error('❌ Error creating orders table:', err);
         reject(err);
@@ -42,7 +42,7 @@ const initializeDatabase = () => {
           ('ORD003', 'Mike Johnson', 'Croissant', 12, CURDATE(), 'Pending')
         `;
         
-        db.query(insertSampleData, (insertErr) => {
+        pool.query(insertSampleData, (insertErr) => {
           if (insertErr) {
             console.log('ℹ️ Sample data already exists or insertion skipped');
           } else {
@@ -75,13 +75,12 @@ initializeDatabase()
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Database tables ready`);
-      console.log(`🌐 API available at: http://localhost:${PORT}/api/orders`);
     });
   })
   .catch(err => {
     console.error('❌ Failed to initialize database:', err);
-    console.log('🔄 Starting server anyway...');
+    // Start server anyway - tables might already exist
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} (database may have issues)`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   });
