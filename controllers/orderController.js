@@ -1,11 +1,20 @@
 import db from '../db/connection.js';
 
 export const getOrders = (req, res) => {
+  console.log('🔍 Attempting to fetch orders from database...');
+  
   db.query('SELECT * FROM orders', (err, results) => {
     if (err) {
-      console.error('Get orders error:', err);
-      return res.status(500).json({ success: false, error: 'Database error' });
+      console.error('❌ Database query error:', err);
+      console.error('❌ Error code:', err.code);
+      console.error('❌ Error message:', err.sqlMessage);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error',
+        details: err.message 
+      });
     }
+    console.log(`✅ Successfully fetched ${results.length} orders`);
     res.json({ success: true, data: results });
   });
 };

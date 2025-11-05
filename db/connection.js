@@ -3,32 +3,35 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log('🔌 Connecting to database...');
+console.log('📋 Database config:', {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
+});
+
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'bakery',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   connectTimeout: 60000,
-  acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true
+  // Remove unsupported options
 });
 
 db.connect(err => {
   if (err) {
-    console.error('❌ DB connection error:', err.message);
-    console.log('💡 Please check:');
-    console.log('   1. Is MySQL running?');
-    console.log('   2. Are database credentials correct?');
-    console.log('   3. Does the database exist?');
+    console.error('❌ Database connection failed:', err.message);
+    console.error('💡 Check Railway environment variables');
   } else {
-    console.log('✅ Connected to MySQL');
+    console.log('✅ Connected to MySQL database on Railway');
   }
 });
 
 db.on('error', (err) => {
-  console.error('Database error:', err);
+  console.error('📊 Database error:', err);
 });
 
 export default db;
